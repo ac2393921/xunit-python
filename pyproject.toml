@@ -8,7 +8,9 @@ packages = [{include = "xunit_python"}]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-
+pytest = "^7.1.3"
+black = "^22.8.0"
+flake8 = "^5.0.4"
 
 [build-system]
 requires = ["poetry-core"]
