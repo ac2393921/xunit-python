@@ -8,9 +8,14 @@ class TestCase:
     def set_up(self):
         pass
 
+    def tear_down(self):
+        pass
+
     def run(self) -> None:
+        self.set_up()
         method = getattr(self, self.name)
         method()
+        self.tear_down()
 
 
 class TestCaseTest(TestCase):
@@ -21,19 +26,23 @@ class TestCaseTest(TestCase):
         self.test.run()
         assert self.test.was_run
 
-    def test_set_up(self):
+    def test_template_method(self):
         self.test.run()
-        assert self.test.was_set_up
+        assert "set_up test_method tear_down " == self.test.log
 
 
 class WasRun(TestCase):
     def set_up(self):
         self.was_run: Optional[bool] = None
         self.was_set_up = 1
+        self.log = "set_up "
 
     def test_method(self) -> None:
         self.was_run = True
+        self.log = self.log + "test_method "
+
+    def tear_down(self):
+        self.log = self.log + "tear_down "
 
 
-TestCaseTest("test_running").run()
-TestCaseTest("test_set_up").run()
+TestCaseTest("test_template_method").run()
