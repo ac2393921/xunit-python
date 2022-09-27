@@ -49,6 +49,11 @@ class TestCaseTest(TestCase):
         result = test.run()
         assert "1 run, 0 failed" == result.summary()
 
+    def test_failed_result(self):
+        test = WasRun("test_broken_method")
+        result = test.run()
+        assert "1 run, 1 failed" == result.summary()
+
 
 class WasRun(TestCase):
     def set_up(self):
@@ -60,9 +65,13 @@ class WasRun(TestCase):
         self.was_run = True
         self.log = self.log + "test_method "
 
+    def test_broken_method(self):
+        raise Exception
+
     def tear_down(self):
         self.log = self.log + "tear_down "
 
 
 TestCaseTest("test_template_method").run()
 TestCaseTest("test_result").run()
+TestCaseTest("test_failed_result").run()
