@@ -1,27 +1,18 @@
-class TestSuite:
-    def __init__(self):
-        self.tests = []
-
-    def add(self, test):
-        self.tests.append(test)
-
-    def run(self, result):
-        for test in self.tests:
-            test.run(result)
+from typing import List
 
 
 class TestResult:
-    def __init__(self):
-        self.run_count = 0
-        self.error_count = 0
+    def __init__(self) -> None:
+        self.run_count: int = 0
+        self.error_count: int = 0
 
-    def test_started(self):
+    def test_started(self) -> None:
         self.run_count += 1
 
-    def test_failed(self):
+    def test_failed(self) -> None:
         self.error_count += 1
 
-    def summary(self):
+    def summary(self) -> str:
         return f"{self.run_count} run, 0 failed"
 
 
@@ -29,13 +20,13 @@ class TestCase:
     def __init__(self, name: str) -> None:
         self.name: str = name
 
-    def set_up(self):
+    def set_up(self) -> None:
         pass
 
-    def tear_down(self):
+    def tear_down(self) -> None:
         pass
 
-    def run(self, result):
+    def run(self, result: TestResult) -> None:
         result.test_started()
         self.set_up()
         try:
@@ -45,7 +36,7 @@ class TestCase:
             result.test_failed()
         self.tear_down()
 
-    def test_suite(self):
+    def test_suite(self) -> None:
         suite = TestSuite()
         suite.add(WasRun("test_method"))
         suite.add(WasRun("test_broken_method"))
@@ -55,34 +46,30 @@ class TestCase:
 
 
 class TestCaseTest(TestCase):
-    def set_up(self):
-        self.result = TestResult()
+    def set_up(self) -> None:
+        self.result: TestResult = TestResult()
 
-    def test_running(self):
-        self.test.run()
-        assert self.test.was_run
-
-    def test_template_method(self):
+    def test_template_method(self) -> None:
         test = WasRun("test_method")
         test.run(self.result)
         assert "set_up test_method tear_down " == test.log
 
-    def test_result(self):
+    def test_result(self) -> None:
         test = WasRun("test_method")
         test.run(self.result)
         assert "1 run, 0 failed" == self.result.summary()
 
-    def test_failed_result(self):
+    def test_failed_result(self) -> None:
         test = WasRun("test_broken_method")
         test.run(self.result)
         assert "1 run, 1 failed" == self.result.summary()
 
-    def test_failed_reuslt_formatting(self):
+    def test_failed_reuslt_formatting(self) -> None:
         self.result.test_started()
         self.result.test_failed()
         assert "1 run, 1 failed" == self.result.summary()
 
-    def test_suit(self):
+    def test_suit(self) -> None:
         suite = TestSuite()
         suite.add(WasRun("testMethod"))
         suite.add(WasRun("testBrokenMethod"))
@@ -91,17 +78,29 @@ class TestCaseTest(TestCase):
 
 
 class WasRun(TestCase):
-    def set_up(self):
-        self.log = "set_up "
+    def set_up(self) -> None:
+        self.log: str = "set_up "
 
     def test_method(self) -> None:
-        self.log = self.log + "test_method "
+        self.log: str = self.log + "test_method "
 
     def test_broken_method(self):
         raise Exception
 
-    def tear_down(self):
-        self.log = self.log + "tear_down "
+    def tear_down(self) -> None:
+        self.log: str = self.log + "tear_down "
+
+
+class TestSuite:
+    def __init__(self) -> None:
+        self.tests: List[TestCaseTest] = []
+
+    def add(self, test: TestCaseTest) -> None:
+        self.tests.append(test)
+
+    def run(self, result: TestResult) -> None:
+        for test in self.tests:
+            test.run(result)
 
 
 suite = TestSuite()
