@@ -1,12 +1,25 @@
-from typing import Optional
+class TestSuite:
+    def __init__(self):
+        self.tests = []
+
+    def add(self, test):
+        self.tests.append(test)
+
+    def run(self, result):
+        for test in self.tests:
+            test.run(result)
 
 
 class TestResult:
     def __init__(self):
         self.run_count = 0
+        self.error_count = 0
 
     def test_started(self):
-        self.run_count = self.run_count + 1
+        self.run_count += 1
+
+    def test_failed(self):
+        self.error_count += 1
 
     def summary(self):
         return f"{self.run_count} run, 0 failed"
@@ -22,47 +35,66 @@ class TestCase:
     def tear_down(self):
         pass
 
-    def run(self):
-        result = TestResult()
+    def run(self, result):
         result.test_started()
         self.set_up()
-        method = getattr(self, self.name)
-        method()
+        try:
+            method = getattr(self, self.name)
+            method()
+        except Exception:
+            result.test_failed()
         self.tear_down()
-        return result
+
+    def test_suite(self):
+        suite = TestSuite()
+        suite.add(WasRun("test_method"))
+        suite.add(WasRun("test_broken_method"))
+        result = TestResult()
+        suite.run(result)
+        assert "2 run, 1 failed" == result.summary()
 
 
 class TestCaseTest(TestCase):
     def set_up(self):
-        self.test = WasRun("test_method")
+        self.result = TestResult()
 
     def test_running(self):
         self.test.run()
         assert self.test.was_run
 
     def test_template_method(self):
-        self.test.run()
-        assert "set_up test_method tear_down " == self.test.log
+        test = WasRun("test_method")
+        test.run(self.result)
+        assert "set_up test_method tear_down " == test.log
 
     def test_result(self):
         test = WasRun("test_method")
-        result = test.run()
-        assert "1 run, 0 failed" == result.summary()
+        test.run(self.result)
+        assert "1 run, 0 failed" == self.result.summary()
 
     def test_failed_result(self):
         test = WasRun("test_broken_method")
-        result = test.run()
-        assert "1 run, 1 failed" == result.summary()
+        test.run(self.result)
+        assert "1 run, 1 failed" == self.result.summary()
+
+    def test_failed_reuslt_formatting(self):
+        self.result.test_started()
+        self.result.test_failed()
+        assert "1 run, 1 failed" == self.result.summary()
+
+    def test_suit(self):
+        suite = TestSuite()
+        suite.add(WasRun("testMethod"))
+        suite.add(WasRun("testBrokenMethod"))
+        self.run(self.result)
+        assert "2 run, 1 failed" == self.result.summary()
 
 
 class WasRun(TestCase):
     def set_up(self):
-        self.was_run: Optional[bool] = None
-        self.was_set_up = 1
         self.log = "set_up "
 
     def test_method(self) -> None:
-        self.was_run = True
         self.log = self.log + "test_method "
 
     def test_broken_method(self):
@@ -72,6 +104,12 @@ class WasRun(TestCase):
         self.log = self.log + "tear_down "
 
 
-TestCaseTest("test_template_method").run()
-TestCaseTest("test_result").run()
-TestCaseTest("test_failed_result").run()
+suite = TestSuite()
+suite.add(TestCaseTest("test_template_method"))
+suite.add(TestCaseTest("test_result"))
+suite.add(TestCaseTest("test_failed_result"))
+suite.add(TestCaseTest("test_failed_result_formatting"))
+suite.add(TestCaseTest("test_suite"))
+result = TestResult()
+suite.run(result)
+print(result.summary)
